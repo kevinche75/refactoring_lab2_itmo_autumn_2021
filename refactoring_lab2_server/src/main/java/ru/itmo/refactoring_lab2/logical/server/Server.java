@@ -22,7 +22,7 @@ public class Server {
     private final String SHOW_COMMAND = "show";
     private final String HELP_COMMAND = "help";
 
-    public Server(){
+    public Server() {
         elements = new HashMap<>();
     }
 
@@ -30,7 +30,7 @@ public class Server {
         int result;
         try {
             result = Integer.parseInt(strNumber);
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new ValueException("Can't parse int");
         }
         return result;
@@ -40,78 +40,79 @@ public class Server {
         boolean result;
         try {
             result = Boolean.parseBoolean(strBool);
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new ValueException("Can't parse boolean");
         }
         return result;
     }
 
-    private String parseAdd(String[] commands) throws UnknownCommand, ValueException {
-        if(commands.length != 3){
+    public String parseAdd(String element, String name) throws UnknownCommand, ValueException {
+        if (element.isBlank() || name.isBlank()) {
             throw new UnknownCommand("Unknown format of add command");
         }
-        if (elements.containsKey(commands[2]) || output != null && output.getName().equals(commands[2])){
-            throw new ValueException(String.format("There is logical element with name: \"%s\"", commands[2]));
+        if (elements.containsKey(name) || output != null && output.getName().equals(name)) {
+            throw new ValueException(String.format("There is logical element with name: \"%s\"", name));
         }
-        switch (commands[1]) {
+        switch (element) {
             case (LogicInput.COMMAND_NAME) -> {
-                LogicInput input = new LogicInput(commands[2]);
+                LogicInput input = new LogicInput(name);
                 elements.put(input.getName(), input);
             }
             case (LogicOutput.COMMAND_NAME) -> {
                 if (output == null) {
-                    output = new LogicOutput(commands[2]);
+                    output = new LogicOutput(name);
                 } else {
                     throw new ValueException("Output has already been set");
                 }
             }
             case (AND.COMMAND_NAME) -> {
-                AND and = new AND(commands[2]);
+                AND and = new AND(name);
                 elements.put(and.getName(), and);
             }
             case (NOT.COMMAND_NAME) -> {
-                NOT not = new NOT(commands[2]);
+                NOT not = new NOT(name);
                 elements.put(not.getName(), not);
             }
             case (OR.COMMAND_NAME) -> {
-                OR or = new OR(commands[2]);
+                OR or = new OR(name);
                 elements.put(or.getName(), or);
             }
             case (XOR.COMMAND_NAME) -> {
-                XOR xor = new XOR(commands[2]);
+                XOR xor = new XOR(name);
                 elements.put(xor.getName(), xor);
             }
             default -> throw new UnknownCommand("Unknown format of add command");
         }
         return "Success";
+
     }
 
-    private String parseConnect(String[] commands) throws UnknownCommand, ValueException {
-        if(commands.length != 3 && commands.length != 4){
+    public String parseConnect(String outputName, String inputName, String inputNumber) throws UnknownCommand, ValueException {
+        if (outputName.isBlank() || inputName.isBlank() || (inputNumber != null && inputNumber.isEmpty())) {
             throw new UnknownCommand("Unknown format of add command");
         }
-        if (output != null && output.getName().equals(commands[1])){
-            throw new ValueException(String.format("Can't connect output element \"%s\", it's final element", commands[1]));
+        if (output != null && output.getName().equals(outputName)) {
+            throw new ValueException(String.format("Can't connect output element \"%s\", it's final element", outputName));
         }
-        if (!elements.containsKey(commands[1])){
-            throw new ValueException(String.format("No logical elements with such name: \"%s\"", commands[1]));
+        if (!elements.containsKey(outputName)) {
+            throw new ValueException(String.format("No logical elements with such name: \"%s\"", outputName));
         }
-        if (!elements.containsKey(commands[2]) && !(output != null && output.getName().equals(commands[2]))){
-            throw new ValueException(String.format("No logical elements with such name: \"%s\"", commands[2]));
+        if (!elements.containsKey(inputName) && !(output != null && output.getName().equals(inputName))) {
+            throw new ValueException(String.format("No logical elements with such name: \"%s\"", inputName));
         }
-        IOElement firstElement = elements.get(commands[1]);
+        IOElement firstElement = elements.get(outputName);
         IOElement secondElement;
-        if (output != null && output.getName().equals((commands[2]))){
+        if (output != null && output.getName().equals((inputName))) {
             secondElement = output;
         } else {
-            secondElement = elements.get(commands[2]);
+            secondElement = elements.get(inputName);
         }
-        if (secondElement instanceof LogicInput){
+        if (secondElement instanceof LogicInput) {
             throw new ValueException(String.format("Can't set input logical element with name \"%s\" to logical element", secondElement.getName()));
         }
-        if (commands.length == 4){
+        if (inputNumber != null) {
             if (secondElement instanceof TwoParamsElement) {
-                int port = parseInt(commands[3]);
+                int port = parseInt(inputNumber);
                 if (port != 1 && port != 0) {
                     throw new UnknownCommand("Input port must be equal 0 or 1");
                 }
@@ -129,88 +130,88 @@ public class Server {
         return "Success";
     }
 
-    private String parseSet(String[] commands) throws UnknownCommand, ValueException {
-        if(commands.length != 3){
+    public String parseSet(String name, String value) throws UnknownCommand, ValueException {
+        if (name.isBlank() || value.isBlank()) {
             throw new UnknownCommand("Unknown format of set command");
         }
-        if (!elements.containsKey(commands[1].strip())){
-            throw new ValueException(String.format("No logical elements with such name: \"%s\"", commands[1]));
+        if (!elements.containsKey(name.strip())) {
+            throw new ValueException(String.format("No logical elements with such name: \"%s\"", name));
         }
-        IOElement inputElement = elements.get(commands[1]);
-        if (!(inputElement instanceof LogicInput)){
-            throw new ValueException(String.format("Logical element with name: \"%s\" is not input", commands[1]));
+        IOElement inputElement = elements.get(name);
+        if (!(inputElement instanceof LogicInput)) {
+            throw new ValueException(String.format("Logical element with name: \"%s\" is not input", name));
         }
-        boolean input = parseBoolean(commands[2]);
+        boolean input = parseBoolean(value);
         inputElement.setInput(input);
         return "Success";
     }
 
-    private String parsePrint() throws ValueException {
-        if (output == null){
+    public String parsePrint() throws ValueException {
+        if (output == null) {
             throw new ValueException("Output element is not set");
         }
         return output.getOutput().toString();
     }
 
-    private String parseShow(String[] commands) throws UnknownCommand, ValueException {
-        if (commands.length != 1 && commands.length != 2){
+    public String parseShow(String name) throws UnknownCommand, ValueException {
+        if (name != null && name.isEmpty()) {
             throw new UnknownCommand("Unknown format of show command");
         }
-        if (commands.length == 1){
+        if (name == null) {
             StringJoiner result = new StringJoiner(" ");
             for (Map.Entry<String, IOElement> entry : elements.entrySet()) {
                 String key = entry.getKey();
                 IOElement value = entry.getValue();
                 result.add(value.getCommandName());
             }
-            if (output != null){
+            if (output != null) {
                 result.add(output.getCommandName());
             }
             return result.toString();
         } else {
-            if (!elements.containsKey(commands[1].strip()) && !(output != null && output.getName().equals(commands[1]) )){
-                throw new ValueException(String.format("No logical elements with such name: \"%s\"", commands[1]));
+            if (!elements.containsKey(name.strip()) && !(output != null && output.getName().equals(name))) {
+                throw new ValueException(String.format("No logical elements with such name: \"%s\"", name));
             }
-            if (output != null && output.getName().equals(commands[1])){
+            if (output != null && output.getName().equals(name)) {
                 return output.getFullName();
             } else {
-                return elements.get(commands[1]).getFullName();
+                return elements.get(name).getFullName();
             }
         }
     }
 
-    public String parseCommand(String line){
-        try {
-            String[] commands = line.strip().split(" ");
-            switch (commands[0].toLowerCase()) {
-                case (ADD_COMMAND) -> {
-                    return parseAdd(commands);
-                }
-                case (CONNECT_COMMAND) -> {
-                    return parseConnect(commands);
-                }
-                case (SET_COMMAND) -> {
-                    return parseSet(commands);
-                }
-                case (PRINT_COMMAND) -> {
-                    return parsePrint();
-                }
-                case (SHOW_COMMAND) -> {
-                    return parseShow(commands);
-                }
-                case (HELP_COMMAND) -> {
-                    return getHelp();
-                }
-                default -> throw new UnknownCommand("Unknown command");
-            }
-        } catch (ValueException e){
-            return e.getMessage();
-        } catch (UnknownCommand e){
-            return e.getMessage() + "\n" + getHelp();
-        }
-    }
+//    public String parseCommand(String line) {
+//        try {
+//            String[] commands = line.strip().split(" ");
+//            switch (commands[0].toLowerCase()) {
+//                case (ADD_COMMAND) -> {
+//                    return parseAdd(commands);
+//                }
+//                case (CONNECT_COMMAND) -> {
+//                    return parseConnect(commands);
+//                }
+//                case (SET_COMMAND) -> {
+//                    return parseSet(commands);
+//                }
+//                case (PRINT_COMMAND) -> {
+//                    return parsePrint();
+//                }
+//                case (SHOW_COMMAND) -> {
+//                    return parseShow(commands);
+//                }
+//                case (HELP_COMMAND) -> {
+//                    return getHelp();
+//                }
+//                default -> throw new UnknownCommand("Unknown command");
+//            }
+//        } catch (ValueException e) {
+//            return e.getMessage();
+//        } catch (UnknownCommand e) {
+//            return e.getMessage() + "\n" + getHelp();
+//        }
+//    }
 
-    private String getHelp(){
+    public String getHelp() {
         return """
                 Commands:
                 add {elemType} {name}: command to add element of {elemType} type. Possible {elemType} values: and, not, xor, or.
@@ -218,6 +219,7 @@ public class Server {
                 connect {n} {m}: command to connect {n}’s output and {m}’s input.
                 connect {n} {m} {0/1}: command to connect {n}’s output and {m}’s {0/1} input (only and, or, xor).
                 print: command to display output value of the scheme.
+                set {name} {false/true}: set input boolean value.
                 show {name}: command to display information about the logical element: name of this element, names of blocks,
                 show: command to display information about all logical elements,
                 which connected with it or value on input(s). {name} is the number of logical element.
