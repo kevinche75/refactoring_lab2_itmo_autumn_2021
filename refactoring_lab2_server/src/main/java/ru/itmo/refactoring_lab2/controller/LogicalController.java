@@ -19,11 +19,11 @@ public class LogicalController {
         return server.parseAdd(element, name);
     }
 
-    @PostMapping("connect/{output}/{input}")
+    @PostMapping({"connect/{output}/{input}", "connect/{output}/{input}/{inputNumber}"})
     public String connectLogicalElements(
             @PathVariable("output") String output,
             @PathVariable("input") String input,
-            @RequestParam(required = false) String inputNumber
+            @PathVariable(required = false) String inputNumber
     ) throws ValueException, UnknownCommand {
         return server.parseConnect(output, input, inputNumber);
     }
@@ -41,14 +41,14 @@ public class LogicalController {
         return server.parsePrint();
     }
 
-    @PostMapping("show")
+    @PostMapping({"show", "show/{elementName}"})
     public String showLogicalElement(
-            @RequestParam(required = false) String elementName
+            @PathVariable(required = false) String elementName
     ) throws ValueException, UnknownCommand {
         return server.parseShow(elementName);
     }
 
-    @GetMapping("help")
+    @PostMapping("help")
     public String getHelp(){
         return server.getHelp();
     }

@@ -15,12 +15,6 @@ public class Server {
 
     private HashMap<String, IOElement> elements;
     private LogicOutput output;
-    private final String ADD_COMMAND = "add";
-    private final String CONNECT_COMMAND = "connect";
-    private final String SET_COMMAND = "set";
-    private final String PRINT_COMMAND = "print";
-    private final String SHOW_COMMAND = "show";
-    private final String HELP_COMMAND = "help";
 
     public Server() {
         elements = new HashMap<>();
@@ -223,6 +217,7 @@ public class Server {
                 show {name}: command to display information about the logical element: name of this element, names of blocks,
                 show: command to display information about all logical elements,
                 which connected with it or value on input(s). {name} is the number of logical element.
+                help: print he
                 exit: stop program;
                 """;
     }
