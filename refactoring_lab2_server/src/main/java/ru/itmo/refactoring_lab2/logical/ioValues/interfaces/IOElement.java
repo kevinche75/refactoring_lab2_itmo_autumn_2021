@@ -1,6 +1,8 @@
 package ru.itmo.refactoring_lab2.logical.ioValues.interfaces;
 
-public interface IOElement extends NamedElement, Output{
+import java.io.Serializable;
+
+public interface IOElement extends NamedElement, Output, Serializable {
 
     void setInput(Object input);
     String getCommandName();

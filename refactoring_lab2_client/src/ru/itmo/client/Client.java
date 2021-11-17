@@ -9,7 +9,7 @@ public class Client {
     private RequestService requestService;
     private boolean launch = true;
 
-    public Client(String URI) throws IOException {
+    public Client(String URI) throws IOException, URISyntaxException, InterruptedException {
         requestService = new RequestService(URI);
     }
 

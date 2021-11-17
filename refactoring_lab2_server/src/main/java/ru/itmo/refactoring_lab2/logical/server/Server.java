@@ -1,5 +1,7 @@
 package ru.itmo.refactoring_lab2.logical.server;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import ru.itmo.refactoring_lab2.logical.exceptions.UnknownCommand;
 import ru.itmo.refactoring_lab2.logical.exceptions.ValueException;
 import ru.itmo.refactoring_lab2.logical.ioValues.LogicInput;
@@ -7,17 +9,39 @@ import ru.itmo.refactoring_lab2.logical.ioValues.LogicOutput;
 import ru.itmo.refactoring_lab2.logical.ioValues.interfaces.IOElement;
 import ru.itmo.refactoring_lab2.logical.logicalFunctions.*;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
 
+@Component
 public class Server {
 
+    @Autowired
+    private HashMapLoaderSaver hashMapLoaderSaver;
     private HashMap<String, IOElement> elements;
     private LogicOutput output;
 
-    public Server() {
-        elements = new HashMap<>();
+    @PostConstruct
+    public void init() {
+        try {
+            elements = hashMapLoaderSaver.readHashMap();
+        } catch (Exception e) {
+            hashMapLoaderSaver.createNewFile();
+            elements = new HashMap<>();
+            System.out.println("Created new file");
+        }
+    }
+
+    @PreDestroy
+    private void saveHashMap(){
+        try {
+            hashMapLoaderSaver.writeHashMap(elements);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private int parseInt(String strNumber) throws ValueException {
@@ -173,37 +197,6 @@ public class Server {
             }
         }
     }
-
-//    public String parseCommand(String line) {
-//        try {
-//            String[] commands = line.strip().split(" ");
-//            switch (commands[0].toLowerCase()) {
-//                case (ADD_COMMAND) -> {
-//                    return parseAdd(commands);
-//                }
-//                case (CONNECT_COMMAND) -> {
-//                    return parseConnect(commands);
-//                }
-//                case (SET_COMMAND) -> {
-//                    return parseSet(commands);
-//                }
-//                case (PRINT_COMMAND) -> {
-//                    return parsePrint();
-//                }
-//                case (SHOW_COMMAND) -> {
-//                    return parseShow(commands);
-//                }
-//                case (HELP_COMMAND) -> {
-//                    return getHelp();
-//                }
-//                default -> throw new UnknownCommand("Unknown command");
-//            }
-//        } catch (ValueException e) {
-//            return e.getMessage();
-//        } catch (UnknownCommand e) {
-//            return e.getMessage() + "\n" + getHelp();
-//        }
-//    }
 
     public String getHelp() {
         return """

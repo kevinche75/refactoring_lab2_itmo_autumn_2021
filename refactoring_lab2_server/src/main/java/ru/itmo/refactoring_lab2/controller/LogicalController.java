@@ -1,15 +1,35 @@
 package ru.itmo.refactoring_lab2.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.itmo.refactoring_lab2.logical.exceptions.UnknownCommand;
 import ru.itmo.refactoring_lab2.logical.exceptions.ValueException;
 import ru.itmo.refactoring_lab2.logical.server.Server;
 
+import javax.annotation.PostConstruct;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+
 @RestController
 @RequestMapping("logical")
 public class LogicalController {
 
-    Server server = new Server();
+    @Autowired
+    Server server;
+
+    HashMap<String, ArrayList<Integer>> commands;
+
+    @PostConstruct
+    public void init() {
+        commands = new HashMap<>();
+        commands.put("add", new ArrayList<>(Arrays. asList(2,2)));
+        commands.put("connect", new ArrayList<>(Arrays. asList(2,3)));
+        commands.put("set", new ArrayList<>(Arrays. asList(2,2)));
+        commands.put("print", new ArrayList<>(Arrays. asList(0,0)));
+        commands.put("show", new ArrayList<>(Arrays. asList(0,1)));
+        commands.put("help", new ArrayList<>(Arrays. asList(0,0)));
+    }
 
     @PostMapping("add/{element}/{name}")
     public String addLogicalElement(
@@ -17,6 +37,11 @@ public class LogicalController {
             @PathVariable("name") String name
     ) throws ValueException, UnknownCommand {
         return server.parseAdd(element, name);
+    }
+
+    @PostMapping("commands")
+    public HashMap<String, ArrayList<Integer>> getCommands(){
+        return commands;
     }
 
     @PostMapping({"connect/{output}/{input}", "connect/{output}/{input}/{inputNumber}"})
