@@ -28,6 +28,12 @@ public class Server {
     public void init() {
         try {
             elements = hashMapLoaderSaver.readHashMap();
+            for (IOElement element : elements.values()){
+                if (element instanceof LogicOutput){
+                    output = (LogicOutput) element;
+                    break;
+                }
+            }
         } catch (Exception e) {
             hashMapLoaderSaver.createNewFile();
             elements = new HashMap<>();
